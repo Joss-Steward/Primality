@@ -9,8 +9,9 @@ import Control.Monad.Par
 -- http://rosettacode.org/wiki/Miller-Rabin_primality_test#Haskell --
 
 -- Miller-Rabin wrapped up as an (almost deterministic) pure function
+-- We use 40 iterations as it's good enough for our purposes
 isPrime :: Integer -> Bool
-isPrime n = unsafePerformIO (isMillerRabinPrime 100 n)
+isPrime n = unsafePerformIO (isMillerRabinPrime 40 n)
 
 isMillerRabinPrime :: Int -> Integer -> IO Bool
 isMillerRabinPrime k n
