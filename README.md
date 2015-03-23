@@ -13,3 +13,10 @@ To Build:
 To Run:
 "./main +RTS -N2"
 This will run the program with 2 threads.
+
+TODO:
+- Create a local manager that will accept an upper and lower bound
+- Create a Global manager that will divide out the work between the computers
+- Get the global manager talking to the local managers over the network (sockets)
+- Allow the global manager to ping all ip addresses in a given range to find free local managers
+- Allow the local managers to report their values back to the global which will then log it to a file
