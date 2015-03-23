@@ -1,13 +1,13 @@
 import Primes
 import Control.Monad.Par
+import Control.Monad
+import Data.List.Split
 
-calculatePrimes :: Integer -> Integer -> Integer -> [Integer]
-calculatePrimes lower middle upper = runPar $ do
-   calcLowerHalf <- (spawn . return) (listPrimes lower middle)
-   calcUpperHalf <- (spawn . return) (listPrimes middle upper)
-   lowerHalf <- get calcLowerHalf
-   upperHalf <- get calcUpperHalf
-   return $ lowerHalf ++ upperHalf
+processChunk :: [Integer] -> [Integer]
+processChunk a = filter isPrime a
 
-main = do
-   print $ calculatePrimes 1 500000 1000000
+findPrimes :: [Integer] -> [[Integer]]
+findPrimes a = runPar $ parMap processChunk $ splitEvery 500000 a
+
+main = print $ findPrimes [1..1000000]
+   -- print $ calculatePrimes 1 500000 1000000

@@ -5,9 +5,6 @@ import System.IO.Unsafe
 import Control.Monad.Par
 -- You need cabal install monad-par to use this!
 
-listPrimes :: Integer -> Integer -> [Integer]
-listPrimes lower upper = filter isPrime [lower..upper]
-
 -- The following primality test was coppied shamelessly from RossettaCode --
 -- http://rosettacode.org/wiki/Miller-Rabin_primality_test#Haskell --
 
