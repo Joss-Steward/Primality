@@ -60,10 +60,14 @@ main = do
       (lowerStr : upperStr : _) -> do
          putStrLn $ "Calculating Primes from " ++ lowerStr ++ " to " ++ upperStr
          putStrLn $ "Using " ++ show n ++ " threads"
-         mapM_ (putStrLn . show) (findPrimes [lower..upper] n)
+         mapM_ (putStrLn . show) primes
+         forM_ (zip [1..n] primes) (\(t,p) -> do
+            putStr $ "Thread " ++ show t
+            putStrLn $ " found " ++ show (length p) ++ " primes")
          where
             lower = read lowerStr :: Integer
             upper = read upperStr :: Integer
+            primes = findPrimes [lower..upper] n
       _ ->
          print "Not gonna work"
 
