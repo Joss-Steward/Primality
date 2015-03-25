@@ -9,6 +9,7 @@ import System.Console.GetOpt
 import System.IO
 import System.Exit
 import Data.Char
+import Network
 
 -- Prime Mining --
 processChunk :: [Integer] -> [Integer]
@@ -23,6 +24,10 @@ data Options = Options { optControllerIP :: String }
 -- Default Options --
 startOptions :: Options
 startOptions = Options { optControllerIP = "127.0.0.1" }
+
+-- This should be turned into an option at some point
+serverPort = 32101
+
 
 -- This also handles parsing the options --
 -- In the future this function should be moved to another file --
@@ -42,6 +47,25 @@ options =
       "Show help"
    ]
 
+startPrimeFinder inp n = do
+
+   putStrLn $ "Calculating Primes from " ++ lowerStr ++ " to " ++ upperStr
+   putStrLn $ "Using " ++ show n ++ " threads"
+   mapM_ (putStrLn . show) primes
+   forM_ (zip [1..n] primes) (\(t,p) -> do
+         putStr $ "Thread " ++ show t
+         putStrLn $ " found " ++ show (length p) ++ " primes")
+   putStrLn $ "Total: " ++ show (foldl (+) 0 $ map length primes)
+   where
+         components = splitOn " " inp
+         lowerStr = components !! 0
+         upperStr = components !! 1
+         lower = read (components !! 0) :: Integer
+         upper = read (components !! 1) :: Integer
+         primes = findPrimes [lower..upper] n
+
+   
+
 main = do
    n <- getNumCapabilities
    args <- getArgs
@@ -56,29 +80,9 @@ main = do
    -- Demo a simple option --
    putStrLn $ "Server IP: " ++ serverIp
 
-   case args of
-      [lowerStr,upperStr] -> do
-         putStrLn $ "Calculating Primes from " ++ lowerStr ++ " to " ++ upperStr
-         putStrLn $ "Using " ++ show n ++ " threads"
-         mapM_ (putStrLn . show) primes
-         forM_ (zip [1..n] primes) (\(t,p) -> do
-            putStr $ "Thread " ++ show t
-            putStrLn $ " found " ++ show (length p) ++ " primes")
-         putStrLn $ "Total: " ++ show (foldl (+) 0 $ map length primes)
-         where
-            lower = read lowerStr :: Integer
-            upper = read upperStr :: Integer
-            primes = findPrimes [lower..upper] n
-      _ ->
-         print "Not gonna work"
-
-
-
-
-
-
-
-
-
-
-
+   handle <- connectTo serverIp $ PortNumber serverPort
+   hPutStrLn handle (show n)
+   
+   inp <- hGetLine handle
+   
+   startPrimeFinder inp n
