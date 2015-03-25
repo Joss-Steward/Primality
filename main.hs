@@ -64,6 +64,7 @@ main = do
          forM_ (zip [1..n] primes) (\(t,p) -> do
             putStr $ "Thread " ++ show t
             putStrLn $ " found " ++ show (length p) ++ " primes")
+         putStrLn $ "Total: " ++ show (foldl (+) 0 $ map length primes)
          where
             lower = read lowerStr :: Integer
             upper = read upperStr :: Integer
