@@ -24,6 +24,8 @@ data Options = Options { optControllerIP :: String }
 startOptions :: Options
 startOptions = Options { optControllerIP = "127.0.0.1" }
 
+-- This also handles parsing the options --
+-- In the future this function should be moved to another file --
 options :: [ OptDescr (Options -> IO Options) ]
 options =
    [ Option "s" ["server"]
@@ -44,10 +46,14 @@ main = do
    n <- getNumCapabilities
    args <- getArgs
 
+   -- This actually parses the options --
    let (actions, nonOptions, errors) = getOpt RequireOrder options args
    opts <- foldl (>>=) (return startOptions) actions
 
+   -- Bind the options to local names --
    let Options { optControllerIP = serverIp } = opts
+
+   -- Demo a simple option --
    putStrLn $ "Server IP: " ++ serverIp
 
    case args of
