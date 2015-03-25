@@ -51,10 +51,10 @@ main = do
    putStrLn $ "Server IP: " ++ serverIp
 
    case args of
-      [lowerStr, upperStr] -> do
+      (lowerStr : upperStr : _) -> do
          putStrLn $ "Calculating Primes from " ++ lowerStr ++ " to " ++ upperStr
          putStrLn $ "Using " ++ show n ++ " threads"
-         --putStrLn $ show $ findPrimes [lower..upper] n
+         mapM_ (putStrLn . show) (findPrimes [lower..upper] n)
          where
             lower = read lowerStr :: Integer
             upper = read upperStr :: Integer
