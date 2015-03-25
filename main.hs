@@ -57,7 +57,7 @@ main = do
    putStrLn $ "Server IP: " ++ serverIp
 
    case args of
-      (lowerStr : upperStr : _) -> do
+      [lowerStr,upperStr] -> do
          putStrLn $ "Calculating Primes from " ++ lowerStr ++ " to " ++ upperStr
          putStrLn $ "Using " ++ show n ++ " threads"
          mapM_ (putStrLn . show) primes
