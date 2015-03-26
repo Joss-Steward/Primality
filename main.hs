@@ -1,4 +1,5 @@
 import Primes
+import Control.DeepSeq
 import Control.Monad
 import Control.Monad.Par
 import Control.Concurrent
@@ -47,8 +48,7 @@ options =
       "Show help"
    ]
 
-startPrimeFinder inp n = do
-
+startPrimeFinder inp n serverIp = do
    putStrLn $ "Calculating Primes from " ++ lowerStr ++ " to " ++ upperStr
    putStrLn $ "Using " ++ show n ++ " threads"
    mapM_ (putStrLn . show) primes
@@ -56,6 +56,11 @@ startPrimeFinder inp n = do
          putStr $ "Thread " ++ show t
          putStrLn $ " found " ++ show (length p) ++ " primes")
    putStrLn $ "Total: " ++ show (foldl (+) 0 $ map length primes)
+--    
+--   show ("Total: " ++ show (foldl (+) 0 $ map length primes))
+  
+   logger primes serverIp
+  
    where
          components = splitOn " " inp
          lowerStr = components !! 0
@@ -64,8 +69,14 @@ startPrimeFinder inp n = do
          upper = read (components !! 1) :: Integer
          primes = findPrimes [lower..upper] n
 
-   
+-- The serverPort-1 os simply to make sure the two servers are not on the same port
+-- We can change this later if we need to
+logger primes serverIp = do
+   logger <- connectTo serverIp $ PortNumber (serverPort-1)
+   -- hPutStrLn logger $ show (mapM_ (show) p)
+   mapM_ (hPutStrLn logger . show) primes
 
+   
 main = do
    n <- getNumCapabilities
    args <- getArgs
@@ -85,4 +96,4 @@ main = do
    
    inp <- hGetLine handle
    
-   startPrimeFinder inp n
+   startPrimeFinder inp n serverIp
