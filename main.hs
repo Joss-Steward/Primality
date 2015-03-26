@@ -17,7 +17,7 @@ processChunk :: [Integer] -> [Integer]
 processChunk a = filter isPrime a
 
 findPrimes :: [Integer] -> Int -> [[Integer]]
-findPrimes a n = runPar $ parMap processChunk $ splitEvery ((length a) `div` n) a
+findPrimes a n = runPar $ parMap processChunk $ chunksOf ((length a) `div` n) a
 
 -- Command line option handling --
 data Options = Options { optControllerIP :: String }
