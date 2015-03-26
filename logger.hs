@@ -1,33 +1,46 @@
+import Network.Socket
 import System.IO
-import Network
+import Control.Exception
+import Control.Concurrent
+import Control.Concurrent.Chan
+import Control.Monad
+import Control.Monad.Fix (fix)
 
--- This is seperate from the server so we can kill the server but catch any remaining 
--- primes that need to be logged still
+type Msg = (Int, String)
 
-filename :: String
 filename = "primes.log"
 
-startServer = withSocketsDo $ do
-   sock <- listenOn  $ PortNumber 32100
+main :: IO ()
+main = do
+   chan <- newChan
+   sock <- socket AF_INET Stream 0
+   setSocketOption sock ReuseAddr 1
+   bindSocket sock (SockAddrInet 4242 iNADDR_ANY)
+   listen sock 2
+   forkIO $ fix $ \loop -> do
+      (_, msg) <- readChan chan
+      loop
+   chan' <- dupChan chan
+   reader <- forkIO $ fix $ \loop -> do
+      (nr', line) <- readChan chan'
+      appendFile filename (show nr' ++ ": " ++ line ++ "\n")
+      loop
+   mainLoop sock chan 0
 
-   sockHandler sock
+mainLoop :: Socket -> Chan Msg -> Int -> IO ()
+mainLoop sock chan nr = do
+   conn <- accept sock
+   forkIO (runConn conn chan nr)
+   mainLoop sock chan $! nr+1
 
--- This is not threaded because we can only have 1 thread with write access anyway
--- If this ends up bottlenecking it we will need to implement a queue of some sort
-sockHandler :: Socket -> IO ()
-sockHandler sock = do
-   (handle, hostname, port) <- accept sock
-   
-   putStrLn ("Connected to: " ++ hostname ++ " at " ++ show port)
-   
-   hSetBuffering handle NoBuffering
-   x <- hGetContents handle
-
-   appendFile filename x
-   
-   sockHandler sock
-
-main = startServer
-      
-      
-      
+runConn :: (Socket, SockAddr) -> Chan Msg -> Int -> IO ()
+runConn (sock, _) chan nr = do
+   let broadcast msg = writeChan chan (nr, msg)
+   hdl <- socketToHandle sock ReadWriteMode
+   hSetBuffering hdl NoBuffering
+   handle (\(SomeException _) -> return ()) $ fix $ \loop -> do
+      line <- hGetLine hdl
+      broadcast line
+      loop
+   broadcast (show nr ++ " left.")
+   hClose hdl
