@@ -37,6 +37,7 @@ runAsSlave serverIP serverPort = do
          primes = findPrimes [lower..upper] numThreads
    logger <- connectTo serverIP $ PortNumber 4242
    mapM_ (hPutStrLn logger . show) primes
+   runAsSlave serverIP serverPort
 
 runLocal lower upper = do
    numThreads <- getNumCapabilities
