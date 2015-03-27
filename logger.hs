@@ -17,13 +17,11 @@ main = do
    setSocketOption sock ReuseAddr 1
    bindSocket sock (SockAddrInet 4242 iNADDR_ANY)
    listen sock 2
-   forkIO $ fix $ \loop -> do
-      (_, msg) <- readChan chan
-      loop
    chan' <- dupChan chan
    reader <- forkIO $ fix $ \loop -> do
       (nr', line) <- readChan chan'
-      appendFile filename (show nr' ++ ": " ++ line ++ "\n")
+      hPutStrLn $ "Results returned from slave " ++ show nr'
+      appendFile filename (line ++ "\n")
       loop
    mainLoop sock chan 0
 
@@ -42,5 +40,4 @@ runConn (sock, _) chan nr = do
       line <- hGetLine hdl
       broadcast line
       loop
-   broadcast (show nr ++ " left.")
    hClose hdl
