@@ -5,6 +5,17 @@ import System.IO.Unsafe
 import Control.Monad.Par
 -- You need cabal install monad-par to use this!
 
+-- Nice wrapper functions
+-- Takes list, returns list of primes in list
+-- list list list list list list
+filterPrimes :: [Integer] -> [Integers]
+filterPrimes a = filter isPrime a
+
+-- Essentially filterPrimes, but in parallel.
+-- Uses n threads to do filtering
+findPrimes :: [Integer] -> Int -> [[Integer]]
+findPrimes a n = runPar $ parMap filterPrimes $ chunksOf ((length a `div` n) a
+
 -- The following primality test was coppied shamelessly from RossettaCode --
 -- http://rosettacode.org/wiki/Miller-Rabin_primality_test#Haskell --
 

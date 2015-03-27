@@ -2,7 +2,6 @@ all:
 	ghc main.hs primeTest.hs -rtsopts -threaded -O2
 	ghc server.hs -rtsopts -threaded -O2
 	ghc logger.hs -O2
-	
 
 debug:
 	ghc main.hs primeTest.hs -rtsopts -threaded -O2 -eventlog

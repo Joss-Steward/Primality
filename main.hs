@@ -12,13 +12,6 @@ import System.Exit
 import Data.Char
 import Network
 
--- Prime Mining --
-processChunk :: [Integer] -> [Integer]
-processChunk a = filter isPrime a
-
-findPrimes :: [Integer] -> Int -> [[Integer]]
-findPrimes a n = runPar $ parMap processChunk $ chunksOf ((length a) `div` n) a
-
 -- Command line option handling --
 data Options = Options { optControllerIP :: String }
 
@@ -28,7 +21,6 @@ startOptions = Options { optControllerIP = "127.0.0.1" }
 
 -- This should be turned into an option at some point
 serverPort = 32101
-
 
 -- This also handles parsing the options --
 -- In the future this function should be moved to another file --
@@ -56,11 +48,11 @@ startPrimeFinder inp n serverIp = do
          putStr $ "Thread " ++ show t
          putStrLn $ " found " ++ show (length p) ++ " primes")
    putStrLn $ "Total: " ++ show (foldl (+) 0 $ map length primes)
---    
+--
 --   show ("Total: " ++ show (foldl (+) 0 $ map length primes))
-  
+
    logger primes serverIp
-  
+
    where
          components = splitOn " " inp
          lowerStr = components !! 0
@@ -76,7 +68,7 @@ logger primes serverIp = do
    -- hPutStrLn logger $ show (mapM_ (show) p)
    mapM_ (hPutStrLn logger . show) primes
 
-   
+
 main = do
    n <- getNumCapabilities
    args <- getArgs
@@ -93,7 +85,7 @@ main = do
 
    handle <- connectTo serverIp $ PortNumber serverPort
    hPutStrLn handle (show n)
-   
+
    inp <- hGetLine handle
-   
+
    startPrimeFinder inp n serverIp
