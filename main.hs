@@ -1,3 +1,5 @@
+module Main (main) where
+
 import Primes
 import Control.DeepSeq
 import Control.Monad
@@ -6,86 +8,58 @@ import Control.Concurrent
 import Data.List
 import Data.List.Split
 import System.Environment
-import System.Console.GetOpt
 import System.IO
 import System.Exit
 import Data.Char
 import Network
+import GetOptions (Options(..), startOptions, options, parseOpts)
 
--- Command line option handling --
-data Options = Options { optControllerIP :: String }
+writeError msg = hPutStrLn stderr msg
 
--- Default Options --
-startOptions :: Options
-startOptions = Options { optControllerIP = "127.0.0.1" }
+writePrimeStats :: [[Integer]] -> IO ()
+writePrimeStats primes = do
+   forM_ (zip [1..] primes) (\(t,p) -> do
+      writeError $ "Thread " ++ (show t) ++ " found " ++ show (length p) ++ " primes")
+   writeError $ "Total primes found: " ++ show (foldl (+) 0 $ map length primes)
 
--- This should be turned into an option at some point
-serverPort = 32101
-
--- This also handles parsing the options --
--- In the future this function should be moved to another file --
-options :: [ OptDescr (Options -> IO Options) ]
-options =
-   [ Option "s" ["server"]
-      (ReqArg
-         (\arg opt -> return opt { optControllerIP = arg })
-         "SERVER IP")
-      "IP of the Control Server"
-   , Option "h" ["help"]
-      (NoArg
-         (\_ -> do
-            prg <- getProgName
-            hPutStrLn stderr (usageInfo prg options)
-            exitWith ExitSuccess))
-      "Show help"
-   ]
-
-startPrimeFinder inp n serverIp = do
-   putStrLn $ "Calculating Primes from " ++ lowerStr ++ " to " ++ upperStr
-   putStrLn $ "Using " ++ show n ++ " threads"
-   mapM_ (putStrLn . show) primes
-   forM_ (zip [1..n] primes) (\(t,p) -> do
-         putStr $ "Thread " ++ show t
-         putStrLn $ " found " ++ show (length p) ++ " primes")
-   putStrLn $ "Total: " ++ show (foldl (+) 0 $ map length primes)
---
---   show ("Total: " ++ show (foldl (+) 0 $ map length primes))
-
-   logger primes serverIp
-
-   where
-         components = splitOn " " inp
-         lowerStr = components !! 0
-         upperStr = components !! 1
+runAsSlave :: String -> PortNumber -> IO()
+runAsSlave serverIP serverPort = do
+   numThreads <- getNumCapabilities
+   writeError $ "Running as slave"
+   writeError $ "Connecting to server @ " ++ serverIP ++ ":" ++ show serverPort
+   handle <- connectTo serverIP $ PortNumber serverPort
+   writeError $ "Connected to server"
+   hPutStrLn handle (show numThreads)
+   inp <- hGetLine handle
+   let   components = splitOn " " inp
          lower = read (components !! 0) :: Integer
          upper = read (components !! 1) :: Integer
-         primes = findPrimes [lower..upper] n
-
--- The serverPort-1 os simply to make sure the two servers are not on the same port
--- We can change this later if we need to
-logger primes serverIp = do
-   logger <- connectTo serverIp $ PortNumber (serverPort-1)
-   -- hPutStrLn logger $ show (mapM_ (show) p)
+         primes = findPrimes [lower..upper] numThreads
+   logger <- connectTo serverIP $ PortNumber 4242
    mapM_ (hPutStrLn logger . show) primes
 
+runLocal lower upper = do
+   numThreads <- getNumCapabilities
+   writeError $ "Running locally"
+   writeError $ "Using " ++ show numThreads ++ " threads"
+   writeError $ "Lower Limit: " ++ show lower
+   writeError $ "Upper Limit: " ++ show upper
+   let primes = findPrimes [lower..upper] numThreads
+   writePrimeStats primes
+   mapM_ (putStrLn . show) primes -- print the primes to the console
 
 main = do
-   n <- getNumCapabilities
    args <- getArgs
+   --let (actions, nonOptions, errors) = getOpt RequireOrder options args
+   --opts <- foldl (>>=) (return startOptions) actions
 
-   -- This actually parses the options --
-   let (actions, nonOptions, errors) = getOpt RequireOrder options args
-   opts <- foldl (>>=) (return startOptions) actions
+   opts <- parseOpts args
+   -- Bind the options to local names
+   let Options { optSlave = slave
+               , optMasterIP = serverIP
+               , optMasterPort = serverPort
+               , optLowerLimit = lower
+               , optUpperLimit = upper } = opts
 
-   -- Bind the options to local names --
-   let Options { optControllerIP = serverIp } = opts
-
-   -- Demo a simple option --
-   putStrLn $ "Server IP: " ++ serverIp
-
-   handle <- connectTo serverIp $ PortNumber serverPort
-   hPutStrLn handle (show n)
-
-   inp <- hGetLine handle
-
-   startPrimeFinder inp n serverIp
+   when slave $ runAsSlave serverIP $ fromIntegral serverPort
+   when (not slave) $ runLocal lower upper

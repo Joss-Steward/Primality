@@ -1,3 +1,5 @@
+module GetOptions (Options(..), startOptions, options, parseOpts) where
+
 import System.Console.GetOpt
 import System.Environment
 import System.Exit
@@ -50,7 +52,7 @@ options =
          (\arg opt -> return opt { optUpperLimit = read arg })
          "[UPPER LIMIT]")
       "Default: 10"
-   , Option "p" ["slave"]
+   , Option "S" ["slave"]
       (NoArg
          (\opt -> return opt { optSlave = True }))
       "Run as slave with default settings"
@@ -63,38 +65,7 @@ options =
       "Show help"
    ]
 
-writeError msg = hPutStrLn stderr msg
-
-runAsSlave serverIP serverPort = do
-   writeError $ "Running as slave"
-   writeError $ "Connecting to server @ " ++ serverIP ++ ":" ++ show serverPort
-
-runLocal lower upper = do
-   writeError $ "Running locally"
-   writeError $ "Lower Limit: " ++ show lower
-   writeError $ "Upper Limit: " ++ show upper
-
-main = do
-   args <- getArgs
-   let (actions, nonOptions, errors) = getOpt RequireOrder options args
-   opts <- foldl (>>=) (return startOptions) actions
-
-   -- Bind the options to local names
-   let Options { optSlave = slave
-               , optMasterIP = serverIP
-               , optMasterPort = serverPort
-               , optLowerLimit = lower
-               , optUpperLimit = upper } = opts
-
-   when slave $ runAsSlave serverIP serverPort
-   when (not slave) $ runLocal lower upper
-
-
-
-
-
-
-
-
-
+parseOpts :: [String] -> IO Options
+parseOpts args = foldl (>>=) (return startOptions) actions
+   where (actions, nonOptions, errors) = getOpt RequireOrder options args
 
