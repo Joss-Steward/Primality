@@ -20,7 +20,7 @@ main = do
    chan' <- dupChan chan
    reader <- forkIO $ fix $ \loop -> do
       (nr', line) <- readChan chan'
-      hPutStrLn $ "Results returned from slave " ++ show nr'
+      putStrLn $ "Results returned from slave " ++ show nr'
       appendFile filename (line ++ "\n")
       loop
    mainLoop sock chan 0
