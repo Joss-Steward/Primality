@@ -1,4 +1,4 @@
-import Network.Socket
+import Network
 import System.IO
 import Control.Exception
 import Control.Concurrent
@@ -13,10 +13,11 @@ filename = "primes.log"
 main :: IO ()
 main = do
    chan <- newChan
-   sock <- socket AF_INET Stream 0
-   setSocketOption sock ReuseAddr 1
-   bindSocket sock (SockAddrInet 4242 iNADDR_ANY)
-   listen sock 2
+--   sock <- socket AF_INET Stream 0
+--   setSocketOption sock ReuseAddr 1
+--   bindSocket sock (SockAddrInet 4242 iNADDR_ANY)
+--   listen sock 2
+   sock <- listenOn $ PortNumber 4242 
    chan' <- dupChan chan
    reader <- forkIO $ fix $ \loop -> do
       (nr', line) <- readChan chan'
@@ -27,15 +28,15 @@ main = do
 
 mainLoop :: Socket -> Chan Msg -> Int -> IO ()
 mainLoop sock chan nr = do
-   conn <- accept sock
-   forkIO (runConn conn chan nr)
+   (handle, _, _) <- accept sock
+   hSetBuffering handle NoBuffering
+
+   forkIO  $ runConn handle chan nr
    mainLoop sock chan $! nr+1
 
-runConn :: (Socket, SockAddr) -> Chan Msg -> Int -> IO ()
-runConn (sock, _) chan nr = do
+runConn :: Handle -> Chan Msg -> Int -> IO ()
+runConn hdl chan nr = do
    let broadcast msg = writeChan chan (nr, msg)
-   hdl <- socketToHandle sock ReadWriteMode
-   hSetBuffering hdl NoBuffering
    handle (\(SomeException _) -> return ()) $ fix $ \loop -> do
       line <- hGetLine hdl
       broadcast line
