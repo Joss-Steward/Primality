@@ -19,8 +19,9 @@ sockHandler sock list = do
     hSetBuffering handle NoBuffering
     x <- hGetLine handle
     
-    putStrLn ("Connected to: " ++ hostname ++ " at " ++ show port)
+    putStr ("Connected to: " ++ hostname ++ " at " ++ show port)
     forkIO $ handleRequest handle (list !! 0) (list !! (read x))
+    putStrLn (", Given " ++ show (list !! 0) ++ " to " ++ show (list !! (read x)))
     
     sockHandler sock $ drop (read x) list
 
