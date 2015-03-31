@@ -8,7 +8,7 @@ sortedList = []
 def process():
     global raw, stringList, intList, sortedList
 
-    with open("primes.log", "r") as f:
+    with open("../bin/primes.log", "r") as f:
         raw = f.read()
         
     stringList = re.findall(r"\d+", raw)
