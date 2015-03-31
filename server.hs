@@ -11,7 +11,7 @@ startServer = withSocketsDo $ do
     sockHandler sock list
     where
         list :: [Int]
-        list = [1, blockSize .. ]
+        list = [0, blockSize .. ]
     
 sockHandler :: Socket -> [Int] -> IO ()
 sockHandler sock list = do
