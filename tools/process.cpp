@@ -9,6 +9,9 @@
 
 //using namespace std;
 
+long int max = 0;
+long int min = 2147483647;
+
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
     std::stringstream ss(s);
     std::string item;
@@ -40,7 +43,14 @@ std::vector<int>* readFileIntoSet() {
             
             for(unsigned int i = 0; i < nums.size(); i++)
             {
-                primes->push_back(std::stoi(nums[i]));
+                long int tmp = std::stoi(nums[i]);
+                primes->push_back(tmp);
+                
+                if(tmp > max) 
+                    max = tmp;
+                if(tmp < min)
+                    min = tmp;
+                
             }
         }
     }
@@ -51,15 +61,17 @@ std::vector<int>* readFileIntoSet() {
 
 int main() {
     
-    std::vector<int> primes = *readFileIntoSet();
+    std::vector<int>* primes = readFileIntoSet();
 //     for(std::set<int>::iterator it = primes.begin(); it != primes.end(); ++it)
 //     {
 //         std::cout << *it << std::endl;
 //     }
-    std::cout << primes.size() << std::endl;
-    std::sort(primes.begin(), primes.end());
-    std::cout << "Lowest Prime: " << primes.front() << std::endl;
-    std::cout << "Highest Prime: " << primes.back() << std::endl;
+    std::cout << primes->size() << std::endl;
+    //std::sort(primes->begin(), primes->end());
+    std::cout << "Lowest Prime: " << min << std::endl;
+    std::cout << "Highest Prime: " << max << std::endl;
+    delete primes;
+    
     return 0;
 }
 
