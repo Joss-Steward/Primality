@@ -6,12 +6,13 @@
 #include <sstream>
 #include <iterator>
 #include <vector>
+#include <cstdlib>
 
 //using namespace std;
 
-long int max = 0;
-long int min = 2147483647;
-
+long unsigned int max = 0;
+long unsigned int min = 2147483647;
+long long count = 0;
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
     std::stringstream ss(s);
     std::string item;
@@ -28,8 +29,8 @@ std::vector<std::string> split(const std::string &s, char delim) {
 }
 
 //Only use if the number of primes can reasonably fit in the ram as a whole
-std::vector<int>* readFileIntoSet() {
-    std::vector<int>* primes = new std::vector<int>;
+void readFileIntoSet() {
+    //std::vector<int>* primes = new std::vector<int>;
     std::ifstream inFile("../bin/primes.log");
     
     std::string line;
@@ -43,9 +44,12 @@ std::vector<int>* readFileIntoSet() {
             
             for(unsigned int i = 0; i < nums.size(); i++)
             {
-                long int tmp = std::stoi(nums[i]);
-                primes->push_back(tmp);
-                
+				char* end;
+				//char tab2[1024];
+				//strcpy(tab2, nums[i].c_str());
+                long unsigned int tmp = std::strtoul(nums[i].c_str(), &end, 10);
+                //primes->push_back(tmp);
+                count++;
                 if(tmp > max) 
                     max = tmp;
                 if(tmp < min)
@@ -55,22 +59,22 @@ std::vector<int>* readFileIntoSet() {
         }
     }
     
-    return primes;
-    
+    //return primes;
 }
 
 int main() {
     
-    std::vector<int>* primes = readFileIntoSet();
+    //std::vector<int>* primes = readFileIntoSet();
+	readFileIntoSet();
 //     for(std::set<int>::iterator it = primes.begin(); it != primes.end(); ++it)
 //     {
 //         std::cout << *it << std::endl;
 //     }
-    std::cout << primes->size() << std::endl;
+    std::cout << count << std::endl;
     //std::sort(primes->begin(), primes->end());
     std::cout << "Lowest Prime: " << min << std::endl;
     std::cout << "Highest Prime: " << max << std::endl;
-    delete primes;
+    //delete primes;
     
     return 0;
 }
